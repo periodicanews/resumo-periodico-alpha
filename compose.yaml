@@ -1,0 +1,20 @@
+services:
+  frontend:
+    build: .
+    container_name: frontend
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      - backend
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+  backend:
+    image: lfoppiano/grobid:latest-develop
+    container_name: backend
+    ports:
+      - "8070:8070"
+    volumes:
+      - ./data:/data

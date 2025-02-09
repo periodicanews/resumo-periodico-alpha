@@ -98,7 +98,23 @@ if uploaded_file and button:
     st.toast("GROBID: iniciando análise", icon="⏳")
 
     # GROBID process
-    grobid_client = GrobidClient(config_path="config.json")
+    grobid_client = GrobidClient(
+        grobid_server="http://backend:8070",
+        batch_size=100,
+        coordinates=[
+            "persName",
+            "figure",
+            "ref",
+            "biblStruct",
+            "formula",
+            "s",
+            "note",
+            "title",
+        ],
+        sleep_time=5,
+        timeout=60,
+    )
+
     grobid_client.process(
         "processFulltextDocument",
         input_path,
