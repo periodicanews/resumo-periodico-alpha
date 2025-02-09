@@ -1,3 +1,4 @@
 streamlit==1.41.1
 anthropic==0.43.0
 python-dotenv
+grobid-client-python==0.0.9

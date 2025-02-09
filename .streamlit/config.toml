@@ -1,0 +1,13 @@
+[theme]
+base = "light"
+primaryColor = "#f9a949"
+secondaryBackgroundColor = "gainsboro"
+textColor = "black"
+backgroundColor = "whitesmoke"
+font = "monospace"
+
+[client]
+toolbarMode = "minimal"
+
+[server]
+port = 8501
