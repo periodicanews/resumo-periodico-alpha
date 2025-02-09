@@ -6,6 +6,7 @@ services:
       - "8501:8501"
     volumes:
       - ./src:/app/src
+      - ./resources:/app/resources
     depends_on:
       - backend
     environment:
@@ -16,5 +17,3 @@ services:
     container_name: backend
     ports:
       - "8070:8070"
-    volumes:
-      - ./data:/data
