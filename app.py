@@ -12,19 +12,26 @@ load_dotenv()
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 st.set_page_config(
-    page_title="Resumo Científico",
-    page_icon="📃",
+    page_title="Resumo Periódico",
+    page_icon="🟨",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # Sessions
-
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "article_content" not in st.session_state:
     st.session_state.article_content = None
+
+if "input_chat_placeholder" not in st.session_state:
+    st.session_state.input_chat_placeholder = "Faça upload do artigo"
+
+# Summary prompt
+question = """Responda aos tópicos: Título ('Título'), Data de publicação ('Data de publicação'),
+Autores ('Autores'), Resumo em um tweet ('Resumo em um tweet'), Panorama ('Panorama'),
+e Principais achados ('Principais achados'). A resposta deve estar em PT-BR e ser baseada no artigo."""
 
 
 # Send prompt to LLM
@@ -57,9 +64,26 @@ def hide_tei_content(response):
 
 # Sidebar
 with st.sidebar:
-    st.title("Resumo Científico", anchor=False)
+    st.title("Resumo Periódico", anchor=False)
+    st.write(
+        """
+Faça upload do artigo científico, gere o resumo e faça perguntas para o chatbot.
+
+A ferramenta usa a biblioteca de aprendizado de máquina GROBID para extrair, analisar e reestruturar a publicação técnica, e o modelo de linguagem Claude 3.5 Haiku para gerar as respostas.
+"""
+    )
+    st.markdown(
+        'É experiental, de <a href="" target="_blank">código aberto</a> e um protótipo para automatizar o processo de curadoria da newsletter Periódica.',
+        unsafe_allow_html=True,
+    )
+
+    st.divider()
+
     uploaded_file = st.file_uploader("Anexar artigo", type=("pdf"))
-    button = st.button("Gerar Resumo", icon="🖋️", use_container_width=True)
+    button = st.button("Resumir", type="primary", use_container_width=True)
+
+if button and not uploaded_file:
+    st.warning("Sem arquivo")
 
 if uploaded_file and button:
     # Make dirs
@@ -98,11 +122,9 @@ if uploaded_file and button:
         st.session_state.article_content = tei_file.read()
 
     # Summary
-    question = """Responda aos tópicos: Título ('Título'), Data de publicação ('Data de publicação'),
-    Autores ('Autores'), Resumo em um tweet ('Resumo em um tweet'), Panorama ('Panorama'),
-    e Principais achados ('Principais achados'). A resposta deve estar em PT-BR e ser baseada no artigo."""
-
-    prompt = f"""{anthropic.HUMAN_PROMPT} Aqui está um artigo:\n\n{st.session_state.article_content}\n\n{question}{anthropic.AI_PROMPT}"""
+    prompt = (
+        f"""Aqui está um artigo:\n\n{st.session_state.article_content}\n\n{question}"""
+    )
 
     st.session_state.messages.append({"role": "user", "content": prompt})
 
@@ -111,32 +133,38 @@ if uploaded_file and button:
 
     st.session_state.messages.append({"role": "assistant", "content": response_text})
 
+    st.session_state.input_chat_placeholder = "Faça mais perguntas sobre o artigo"
+
 # Chat
 for message in st.session_state.messages:
+    if (
+        message["content"] in question
+        or "Baseando-se neste artigo" in message["content"]
+        or "Aqui está um artigo:" in message["content"]
+    ):
+        continue
+
     with st.chat_message(message["role"]):
-        if message["content"] in question:
-            pass
-        if "Baseando-se neste artigo" in message["content"]:
-            pass
         st.markdown(hide_tei_content(message["content"]))
 
 # Input user
-user_input = st.chat_input("Faça mais perguntas sobre o artigo")
+user_input = st.chat_input(st.session_state.input_chat_placeholder)
 if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
 
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    followup_prompt = f"{anthropic.HUMAN_PROMPT} Baseando-se neste artigo:\n\n{st.session_state.article_content}\n\n{user_input}{anthropic.AI_PROMPT}"
+    followup_prompt = f"Baseando-se neste artigo:\n\n{st.session_state.article_content}\n\n{user_input}"
 
     st.session_state.messages.append({"role": "user", "content": followup_prompt})
 
     response = llm_client()
-    response_text = response.content[0].text
 
     if not response:
         st.stop()
+
+    response_text = response.content[0].text
 
     with st.chat_message("assistant"):
         chat_response = st.write_stream(stream_data(hide_tei_content(response_text)))
