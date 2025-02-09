@@ -13,7 +13,7 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 st.set_page_config(
     page_title="Resumo Periódico",
-    page_icon="🟨",
+    page_icon="assets/favicon.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -29,9 +29,7 @@ if "input_chat_placeholder" not in st.session_state:
     st.session_state.input_chat_placeholder = "Faça upload do artigo"
 
 # Summary prompt
-question = """Responda aos tópicos: Título ('Título'), Data de publicação ('Data de publicação'),
-Autores ('Autores'), Resumo em um tweet ('Resumo em um tweet'), Panorama ('Panorama'),
-e Principais achados ('Principais achados'). A resposta deve estar em PT-BR e ser baseada no artigo."""
+question = """Respond to the topics: Title ('Título'), Publication Date ('Data de publicação'), Authors ('Autores'), Summary in a Tweet ('Resumo em um tweet'), Overview ('Panorama'), and Key Findings ('Principais achados'). The response should be in PT-BR and based on the article."""
 
 
 # Send prompt to LLM
@@ -64,6 +62,7 @@ def hide_tei_content(response):
 
 # Sidebar
 with st.sidebar:
+    st.image("assets/periodica.png", width=50)
     st.title("Resumo Periódico", anchor=False)
     st.write(
         """
@@ -89,7 +88,7 @@ if uploaded_file and button:
     # Make dirs
     pdf_name = uploaded_file.name
     date_now = datetime.datetime.now()
-    input_path = f"./resources/input_{date_now}/"
+    input_path = f"resources/input_{date_now}/"
     pdf_path = f"{input_path}{pdf_name}"
     os.makedirs(input_path, exist_ok=True)
 
@@ -99,7 +98,7 @@ if uploaded_file and button:
     st.toast("GROBID: iniciando análise", icon="⏳")
 
     # GROBID process
-    grobid_client = GrobidClient(config_path="./config.json")
+    grobid_client = GrobidClient(config_path="config.json")
     grobid_client.process(
         "processFulltextDocument",
         input_path,
@@ -123,7 +122,7 @@ if uploaded_file and button:
 
     # Summary
     prompt = (
-        f"""Aqui está um artigo:\n\n{st.session_state.article_content}\n\n{question}"""
+        f"""Here is an article:\n\n{st.session_state.article_content}\n\n{question}"""
     )
 
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -137,10 +136,11 @@ if uploaded_file and button:
 
 # Chat
 for message in st.session_state.messages:
+    # Hide summary and pre-prompt input messages
     if (
         message["content"] in question
+        or "Here is an article:" in message["content"]
         or "Baseando-se neste artigo" in message["content"]
-        or "Aqui está um artigo:" in message["content"]
     ):
         continue
 
