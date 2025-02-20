@@ -18,4 +18,4 @@ A integração entre o GROBID e a API da Anthropic ocorre pelo front-end com o c
 
 A reestruturação do artigo ocorre apenas uma vez por sessão, durante a geração do resumo (primeiro prompt enviado automaticamente). O servidor não mantém o histórico de prompts nem recupera arquivos processados (PDF e TEI), embora os armazene temporariamente em diretórios organizados por data e hora.
 
-O framework do front-end e o modelo de linguagem utilizados nesta etapa não são definitivos e fazem parte do processo de prototipação da ferramenta, permitindo a experimentação com outras arquiteturas. Para o próximo teste será desenvolvido um chatbot para o WhatsApp e testado outro LLM.
+O framework do front-end e o modelo de linguagem utilizados nesta etapa não são definitivos e fazem parte do processo de prototipação da ferramenta, permitindo a experimentação com outras arquiteturas.
